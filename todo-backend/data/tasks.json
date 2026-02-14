@@ -1,0 +1,65 @@
+[
+  {
+    "id": 1770485332048,
+    "text": "React çalış",
+    "priority": "high",
+    "date": "2026-02-08",
+    "comments": "react hookslara bak",
+    "status": "today",
+    "done": false
+  },
+  {
+    "id": 1770485597588,
+    "text": "React projesini bitir",
+    "priority": "high",
+    "date": "2026-02-16",
+    "comments": "Componentleri tamamla",
+    "status": "pending",
+    "done": false
+  },
+  {
+    "id": 1770485652296,
+    "text": "Python projesini bitir",
+    "priority": "medium",
+    "date": "2026-02-24",
+    "comments": "Daha vakit var ",
+    "status": "pending",
+    "done": false
+  },
+  {
+    "id": 1770485689335,
+    "text": "Yeni bir kitap oku",
+    "priority": "low",
+    "date": "2026-02-07",
+    "comments": "Vakit bulursam",
+    "status": "pending",
+    "done": false
+  },
+  {
+    "id": 1770485731244,
+    "text": "Küçük bir mobil uygulama yap",
+    "priority": "medium",
+    "date": "2026-01-27",
+    "comments": "En kısa zamanda halet!!!",
+    "status": "overdue",
+    "done": false
+  },
+  {
+    "id": 1770485753532,
+    "text": "Sınav için notları gözden geçir",
+    "priority": "high",
+    "date": "2026-02-09",
+    "comments": "",
+    "status": "overdue",
+    "done": false
+  },
+  {
+    "id": 1771086673383,
+    "text": "Test çöz",
+    "priority": "medium",
+    "date": "2026-02-14",
+    "comments": "20 soru çöz",
+    "status": "today",
+    "done": false
+  }
+]

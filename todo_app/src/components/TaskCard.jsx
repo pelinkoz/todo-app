@@ -1,6 +1,11 @@
-import React, { useState , useEffect} from 'react' 
+import React, { useState , useEffect, use} from 'react' 
+import axios from "axios"
+import { FaPlus } from "react-icons/fa"
 import ButtonCard from './ButtonCard'
 import TodayCard from './TodayCard'
+import PendingCard from './PendingCard'
+import OverdueCard from './OverdueCard'
+import CompleteCard from './CompleteCard'
 
 const TaskCard = () => {
   
@@ -18,76 +23,116 @@ const TaskCard = () => {
 
     const [editingTask, setEditingTask] = useState(null)
 
-    const [task, setTask] = useState(() => {
-      const savedTasks = localStorage.getItem("tasks")
-      return savedTasks ? JSON.parse(savedTasks) : []
-    })
-  
-    useEffect(() => {
-      localStorage.setItem("tasks", JSON.stringify(task))
-    }, [task])
+    const [task, setTask] = useState([])
 
+    const [mode, setMode] = useState("new") 
+
+    const [viewTask, setViewTask] = useState(null)
+
+
+    useEffect(()=>{
+      axios.get("http://localhost:3000/tasks")
+        .then(res=> setTask(res.data))
+    },[])
+  
     //add and edit
-    const saveTask = () =>{
+    const saveTask = async () =>{
       if( newTask.trim() === "") return
 
       if(editingTask){
-        setTask(
-          task.map(t=> 
-            t.id === editingTask.id ? {...t, text: newTask, priority, date, Comments}: t)
+        await axios.put(
+          `http://localhost:3000/tasks/${editingTask.id}`,
+          {
+            text: newTask,
+            date,
+            priority,
+            comments: Comments
+          }
         )
       }
-
+        
       else{
 
-        setTask([
-          ...task,
-          { 
-            id:Date.now(), 
-            text:newTask, 
-            priority: priority,
-            date:date,
-            done:false 
+        await axios.post("http://localhost:3000/tasks",
+
+          {
+             text: newTask,
+            priority,
+            date,
+            comments: Comments,
+            status: selected 
           }
-        ])
+        
+        )
 
       }
       
+      const res = await axios.get("http://localhost:3000/tasks")
+      setTask(res.data)
+
       setEditingTask(null)
+      setViewTask(null)
       setNewtask("")
       setDate("")
       setPriority("")
       setComment("")
+      setMode("new")
       setShowPopup(false)
     }
 
     // when you complete the task
-    const complete = (id) =>{
-      setTask(
-        task.map(t=>
-          t.id === id ? { ...t, done: !t.done } : t)
-      )
+    const complete = async (id, currentDone) =>{
 
+      await axios.patch(`http://localhost:3000/tasks/${id}`, {
+        done: !currentDone
+      })
+
+      const res = await axios.get("http://localhost:3000/tasks")
+      setTask(res.data)
+  
     }
 
-    const deleteTask = (id) => {
-      setTask(task.filter(task => task.id !== id))
+    const todayTasks = task.filter(t => t.status === "today" && !t.done)
+    const pendingTasks = task.filter(t => t.status === "pending" &&  !t.done)
+    const overdueTasks = task.filter (t=> t.status === "overdue" &&  !t.done)
+    const completedTasks = task.filter(t => t.done)
+
+
+  
+    const deleteTask = async(id) => {
+
+      await axios.delete(`http://localhost:3000/tasks/${id}`)
+
+      const res = await axios.get("http://localhost:3000/tasks")
+      setTask(res.data)
+      
     }
 
-    
     useEffect(()=>{
       if(editingTask){
         setNewtask(editingTask.text),
         setPriority(editingTask.priority),
         setDate(editingTask.date),
-        setComment(editingTask.Comments)
-        setShowPopup(true)
+        setComment(editingTask.comments)
+        setShowPopup(true),
+        setMode("edit")
       }
     },[editingTask])
 
+    useEffect(()=>{
+      if(viewTask){
+        setNewtask(viewTask.text),
+        setPriority(viewTask.priority),
+        setDate(viewTask.date),
+        setComment(viewTask.comments),
+        setShowPopup(true),
+        setMode("view")
+      }
+    },[viewTask])
+
     return (
         
-      <section className="flex flex-col items-center mt-6">
+      <section className="flex flex-col items-center mt-6 mb-10">
         <ButtonCard selected={selected} setSelected={setSelected} />
   
         <div className="flex justify-between items-center md:w-[80%] lg:w-[60%] mb-4 mt-10 shadow:md">
@@ -95,18 +140,42 @@ const TaskCard = () => {
             Task
           </h1>
   
-          <button className="bg-[#6D28D9] text-white py-3 px-8 rounded-sm shadow-[#6B7280] hover:bg-[#8B5CF6] active:bg-[#6D28D9]" onClick={() => setShowPopup(true)}>
-            Add
+          <button className="bg-[#6D28D9] text-white px-6 py-3 rounded-md flex items-center justify-center gap-2 shadow-md hover:bg-[#8B5CF6] active:bg-[#6D28D9]" onClick={() => setShowPopup(true)}>
+            <FaPlus className="text-sm" />
+            <span className="font-medium">Add</span>
           </button>
         </div>
         
 
         <div className="bg-white shadow-sm py-5 px-5 md:w-[80%] lg:w-[60%] rounded-xl">
             <div>
-                {selected === "today" && <TodayCard tasks={task} deleteTask={deleteTask} complete={complete} setEditingTask={setEditingTask}/>}
-                {selected === "pending" && <div id="pending">pending</div>}
-                {selected === "overdue" && <div id="overdue">overdue</div>}
-                complete place
+                {selected === "today" && <TodayCard 
+                    tasks={todayTasks}
+                    deleteTask={deleteTask}
+                    complete={complete}
+                    setEditingTask={setEditingTask}
+                    setViewTask={setViewTask}/>
+                }
+
+                {selected === "pending" && <PendingCard 
+                    tasks={pendingTasks} 
+                    deleteTask={deleteTask}
+                    complete={complete}
+                    setEditingTask={setEditingTask}
+                    setViewTask={setViewTask}/>
+                }
+
+                {selected === "overdue" && <OverdueCard 
+                    tasks={overdueTasks}  
+                    deleteTask={deleteTask}
+                    complete={complete}
+                    setEditingTask={setEditingTask}
+                    setViewTask={setViewTask}/>
+                }
+
+            </div>
+            <div className="mt-6">
+              <CompleteCard tasks={completedTasks}  deleteTask={deleteTask} complete={complete}/>
             </div>
 
         </div>
@@ -129,6 +198,7 @@ const TaskCard = () => {
                         value={newTask}
                         onChange={(e) => setNewtask(e.target.value)}
                         placeholder="Task name..."
+                        disabled={mode === "view"}
                       />
 
                       <div className='flex items-center gap-4 w-full'> 
@@ -141,6 +211,7 @@ const TaskCard = () => {
                           className='bg-white border py-1 px-1 lg:py-2 mb-4 rounded-sm'
                           value={priority} 
                           onChange={(e)=> setPriority(e.target.value)}
+                          disabled={mode === "view"}
                           >
                             <option value="" disabled>
                               Select priority
@@ -163,6 +234,7 @@ const TaskCard = () => {
                           className='border py-1 px-1 lg:py-2 w-full rounded-sm mb-4'
                           value={date}
                           onChange={(e)=>setDate(e.target.value)}
+                          disabled={mode === "view"}
                           />
 
                         </div>
@@ -178,7 +250,7 @@ const TaskCard = () => {
                         value={Comments}
                         onChange={(e)=> setComment(e.target.value)}
                         placeholder="Write a comment"
-                        
+                        disabled={mode === "view"}
                       />
 
                       <div className="flex justify-end gap-2">
@@ -190,18 +262,23 @@ const TaskCard = () => {
                             setNewtask("")
                             setComment("")
                             setEditingTask(null)
+                            setViewTask(null)
+                            setMode("new")
                           }}
-                          className="px-4 py-2 border rounded"
+                          className={`px-4 py-2 border rounded ${mode ==='view' ? " bg-[#6D28D9] text-white border-[#6D28D9] hover:bg-[#7C3AED]" : "bg-white text-black border hover:bg-gray-100"}`}
+                        
                         >
                           Cancel
                         </button>
 
-                        <button
-                          onClick={saveTask}
-                          className="px-4 py-2 bg-[#6D28D9] text-white rounded"
-                        >
-                          {editingTask ? "Update" : "Add"}
-                        </button>
+                        {mode !== "view" && (
+                            <button
+                              onClick={saveTask}
+                              className="px-4 py-2 bg-[#6D28D9] text-white rounded hover:bg-[#7C3AED]"
+                            >
+                              {mode === "edit" ? "Update" : "Add"}
+                            </button>
+                          )}
                       </div>
 
                     </div>
