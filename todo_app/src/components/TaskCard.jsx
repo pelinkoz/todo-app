@@ -1,4 +1,4 @@
-import React, { useState , useEffect, use} from 'react' 
+import React, { useState , useEffect} from 'react' 
 import axios from "axios"
 import { FaPlus } from "react-icons/fa"
 import ButtonCard from './ButtonCard'
@@ -29,9 +29,11 @@ const TaskCard = () => {
 
     const [viewTask, setViewTask] = useState(null)
 
+    const API = "https://todo-app-t4ws.onrender.com";
+
 
     useEffect(()=>{
-      axios.get("http://localhost:3000/tasks")
+      axios.get(`${API}/tasks`)
         .then(res=> setTask(res.data))
     },[])
   
@@ -41,7 +43,7 @@ const TaskCard = () => {
 
       if(editingTask){
         await axios.put(
-          `http://localhost:3000/tasks/${editingTask.id}`,
+          `${API}/tasks/${editingTask.id}`,
           {
             text: newTask,
             date,
@@ -53,7 +55,7 @@ const TaskCard = () => {
         
       else{
 
-        await axios.post("http://localhost:3000/tasks",
+        await axios.post(`${API}/tasks`,
 
           {
              text: newTask,
@@ -67,7 +69,7 @@ const TaskCard = () => {
 
       }
       
-      const res = await axios.get("http://localhost:3000/tasks")
+      const res = await axios.get(`${API}/tasks`)
       setTask(res.data)
 
       setEditingTask(null)
@@ -83,11 +85,11 @@ const TaskCard = () => {
     // when you complete the task
     const complete = async (id, currentDone) =>{
 
-      await axios.patch(`http://localhost:3000/tasks/${id}`, {
+      await axios.patch(`${API}/tasks/${id}`, {
         done: !currentDone
       })
 
-      const res = await axios.get("http://localhost:3000/tasks")
+      const res = await axios.get(`${API}/tasks`)
       setTask(res.data)
   
     }
@@ -101,9 +103,9 @@ const TaskCard = () => {
   
     const deleteTask = async(id) => {
 
-      await axios.delete(`http://localhost:3000/tasks/${id}`)
+      await axios.delete(`${API}/tasks/${id}`)
 
-      const res = await axios.get("http://localhost:3000/tasks")
+      const res = await axios.get(`${API}/tasks`)
       setTask(res.data)
       
     }
