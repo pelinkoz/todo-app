@@ -7,6 +7,8 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
+const PORT = process.env.PORT || 3000;
+
 const dataPath = path.join(__dirname, "data", "tasks.json")
 
 const readTasks = () => {
@@ -81,3 +83,7 @@ app.delete("/tasks/:id", (req, res) => {
 app.listen(3000, () => {
   console.log("http://localhost:3000")
 })
+
+app.listen(PORT, () => {
+  console.log(`Server running on ${PORT}`);
+});
